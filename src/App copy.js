@@ -26,7 +26,7 @@ class App extends React.Component {
 	 * @param {*} args arguments
 	 * @returns void
 	 */
-	performAxiosFetch = ({...args}) => {
+	performAxiosFetch = ({ ...args	}) => {
 		let username = 'ReactTest';
 		let password = '2020-June-Round2';
 		/** Joining the params into a string */
@@ -34,10 +34,10 @@ class App extends React.Component {
 			.map(k => (k) + '=' + (args.params[k]))
 			.join('&');
 
-		let finalUrl = `${args.url}?${queryFragment}`;
+		let url = `${args.url}?${queryFragment}`;
 
 		/** Setting up a Axios GET call */
-		axios.get(finalUrl, {
+		axios.get(url, {
 				/** Auth header */
 				headers: {
 					'Authorization': 'Basic ' + base64.encode(username + ':' + password)
@@ -139,8 +139,24 @@ class App extends React.Component {
 		let width = svgWidth = svgWidth - margin.left - margin.right;
 		let height = svgHeight - margin.top - margin.bottom;
 
+		const zoomed = (event) => {
+			d3.select('#chartArea')
+				.attr("transform", event.transform)
+				.style("stroke-width", 2 / event.transform.k);
+
+			d3.select('#gxLabel')
+				.call(xAxis.scale(event.transform.rescaleX(x)));
+		
+			d3.select('#gyLabel')
+				.call(yAxis.scale(event.transform.rescaleY(y)));
+		}
+
 		/**Removing the previously formed svg element */
 		d3.selectAll('svg').remove();
+
+		const zoom = d3.zoom()
+			.scaleExtent([1, 2])
+			.on("zoom", zoomed);
 
 		/** Creating a new svg element */
 		let svg = d3.select(this.myRef.current)
@@ -168,32 +184,40 @@ class App extends React.Component {
 		y.domain(d3.extent(data, d => d.V));
 
 		/** Setting up the X-axis */
+			// let xAxis = d3.axisBottom(x)
+			// 	.tickSize(-(svgHeight - (margin.bottom + margin.top)));
 		g.append('g')
 			.attr('id', 'gxLabel')
 			.attr('class', 'axis')
 			.attr('transform', `translate(0, ${height})`)
+			//.call(xAxis)
 			.call(d3.axisBottom(x).tickSize(-(svgHeight - (margin.bottom + margin.top))))
 			.attr('style', 'stroke-width: 1px; font-size: 12px;')
 			.attr('fill', 'none')
 			.append('text')
-			.attr('style', 'font-size: 16px')
-			.text('T')
-			.attr('x', -15)
-			.attr('y', 10)
+			.attr('transform', 'rotate(-90)')
+			.attr('x', 3)
+			.attr('dx', '0.7em')
+			.attr('text-anchor', 'middle')
+			.text('T');
 
 		/** Setting up the Y-axis */
+		// let yAxis = d3.axisLeft(y)
+		// 	.tickSize(-(svgWidth - (margin.left + margin.right)));
 		g.append('g')
 			.attr('id', 'gYLabel')
 			.attr('class', 'axis')
-			.call(d3.axisLeft(y))
+			//.call(yAxis)
+			.call(d3.axisLeft(y).tickSize(-(svgWidth - (margin.left + margin.right))))
 			.attr('style', 'stroke-width: 1px; font-size: 12px;')
 			.attr('fill', 'none')
 			.append('text')
-			.attr('style', 'font-size: 16px')
-			.text('V')
-			.attr('x', -5)
-			.attr('y', 0)
-			
+			.attr('transform', 'rotate(-90)')
+			.attr('y', 3)
+			.attr('dy', '0.7em')
+			.attr('text-anchor', 'middle')
+			.text('V');
+
 		/** Setting up the line graph */
 			g.append('path')
 			.datum(data)
